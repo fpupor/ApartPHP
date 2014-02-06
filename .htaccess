@@ -1,0 +1,63 @@
+RewriteEngine on
+
+RewriteCond %{HTTP_HOST} !^www\.[a-z-]+\.[a-z]{2,6} [NC]
+RewriteCond %{HTTP_HOST} ([a-z-]+\.[a-z]{2,6})$     [NC]
+RewriteRule ^/(.*)$ http://%1/$1 [R=301,L]
+
+
+###########################
+##### APART FRAMEWORK #####
+###########################
+
+#
+#SEGURNCA
+
+#ignorar listagem de pasta
+IndexIgnore .htaccess */_System
+IndexIgnore .htaccess */_Classes
+IndexIgnore .htaccess */Business
+IndexIgnore .htaccess */Data
+IndexIgnore .htaccess */Interface/Controller
+IndexIgnore .htaccess */Interface/View
+
+#seguranca para arquivos do framework Apart
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /(_System|_Classes|Business|Data|Interface\/Controller|Interface\/View)/.*\ HTTP [NC]
+RewriteRule .* - [F,L]
+
+
+#
+#BOOTSTRAP
+
+#carrega o bootstrap quando entrar no site ou na index
+RewriteCond %{REQUEST_URI} ^\/$ [OR]
+RewriteCond %{REQUEST_URI} ^\/\?
+RewriteRule ^(.*)$ /_System/bootstrap.php?bts_load_page=Index&%{query_string} [L]
+
+#retira o ultimo ifen que corresponde a controle ou view
+RewriteCond %{REQUEST_URI} ^([A-z\/]*)[-]([A-z\/]*)$
+RewriteRule .* /%1_%2 [L]
+
+#carrega o bootstrap para qualquer classe
+RewriteCond %{DOCUMENT_ROOT}\/Interface\/Controller%{REQUEST_URI}\.php -f
+RewriteRule ^(.*)$ /_System/bootstrap.php?bts_load_page=$1&%{query_string} [L]
+
+#carrega padrao index de classe
+RewriteCond %{DOCUMENT_ROOT}\/Interface\/Controller%{REQUEST_URI}\/Index\.php -f
+RewriteRule ^(.*)$ /_System/bootstrap.php?bts_load_page=$1/Index&%{query_string} [L]
+
+#carrega o arquivo HTML caso nao exista a classe
+RewriteCond %{DOCUMENT_ROOT}\/Interface\/View%{REQUEST_URI}\.html -f
+RewriteRule ^(.*)$ /Interface/View/$1.html?%{query_string} [L]
+
+#carrega arquivo padrao index
+RewriteCond %{DOCUMENT_ROOT}\/Interface\/View%{REQUEST_URI}\/Index\.html -f
+RewriteRule ^(.*)$ /Interface/View/$1/Index.html?%{query_string} [L]
+
+#carrega o assets
+RewriteCond %{DOCUMENT_ROOT}\/Interface%{REQUEST_URI} -f
+RewriteRule ^(.*)$ /Interface/$1 [L]
+
+#DEBUG
+#RewriteCond %{REQUEST_URI} !echo
+#RewriteCond %{REQUEST_URI} [\-]+
+#RewriteRule ^(.*)[-](.*)$ /$1$2 [L]
